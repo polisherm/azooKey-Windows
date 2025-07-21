@@ -23,9 +23,15 @@ pub struct ZenzaiConfig {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct KeyBindingConfig {
+    pub enable_muhenkan_henkan: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AppConfig {
     pub version: String,
     pub zenzai: ZenzaiConfig,
+    pub key_bindings: KeyBindingConfig,
 }
 
 impl Default for AppConfig {
@@ -36,6 +42,9 @@ impl Default for AppConfig {
                 enable: false,
                 profile: "".to_string(),
                 backend: "cpu".to_string(),
+            },
+            key_bindings: KeyBindingConfig {
+                enable_muhenkan_henkan: true,
             },
         }
     }

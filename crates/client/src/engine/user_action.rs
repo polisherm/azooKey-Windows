@@ -1,5 +1,6 @@
 use crate::extension::VKeyExt;
 use anyhow::{Context, Result};
+use shared::AppConfig;
 use windows::Win32::UI::Input::KeyboardAndMouse::{GetKeyboardState, ToUnicode, VK_SHIFT};
 
 #[derive(Debug)]
@@ -72,6 +73,16 @@ impl TryFrom<usize> for UserAction {
             0x79 => UserAction::Function(Function::Ten), // VK_F10
 
             0xF3 | 0xF4 => UserAction::ToggleInputMode, // Zenkaku/Hankaku
+            0x1D | 0x1C => {
+                // Muhenkan (0x1D) and Henkan (0x1C) keys
+                // Check if this feature is enabled in configuration
+                let config = AppConfig::read();
+                if config.key_bindings.enable_muhenkan_henkan {
+                    UserAction::ToggleInputMode
+                } else {
+                    UserAction::Unknown
+                }
+            }
 
             _ => {
                 let key_state = {

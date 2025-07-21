@@ -4,5 +4,8 @@
         "enable": false,
         "profile": "",
         "backend": "cpu"
+    },
+    "key_bindings": {
+        "enable_muhenkan_henkan": true
     }
 }

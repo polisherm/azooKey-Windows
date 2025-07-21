@@ -1,9 +1,75 @@
 import { Button } from "@/components/ui/button";
-import { RefreshCcw, ExternalLink } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { RefreshCcw, ExternalLink, Keyboard } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { invoke } from '@tauri-apps/api/core';
 
 export const General = () => {
+    const [keyBindings, setKeyBindings] = useState({
+        enable_muhenkan_henkan: true,
+    });
+
+    // Load config on component mount
+    useEffect(() => {
+        invoke<any>("get_config")
+            .then((data) => {
+                const keyBindings = data.key_bindings;
+                setKeyBindings({
+                    enable_muhenkan_henkan: keyBindings.enable_muhenkan_henkan,
+                });
+            })
+            .catch(() => {
+                // Keep default values if config fetch fails
+            });
+    }, []);
+
+    const updateConfig = async (updater: (config: any) => void) => {
+        try {
+            const data = await invoke<any>("get_config");
+            updater(data);
+            await invoke("update_config", { newConfig: data });
+            return data;
+        } catch (error) {
+            toast("設定の更新に失敗しました");
+            return null;
+        }
+    };
+
+    const handleMuhenkanHenkanChange = async () => {
+        const data = await updateConfig((data) => {
+            data.key_bindings.enable_muhenkan_henkan = !keyBindings.enable_muhenkan_henkan;
+        });
+        
+        if (data) {
+            setKeyBindings((prev) => ({ 
+                ...prev, 
+                enable_muhenkan_henkan: data.key_bindings.enable_muhenkan_henkan 
+            }));
+            toast("キーバインド設定が更新されました");
+        }
+    };
+
     return (
         <div className="space-y-8">
+            <section className="space-y-2">
+                <h1 className="text-sm font-bold text-foreground">キーバインド</h1>
+                <div className="flex items-center space-x-4 rounded-md border p-4">
+                    <Keyboard />
+                    <div className="flex-1 space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                            無変換・変換キーでIME切り替え
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            無変換キー（IMEオフ）と変換キー（IMEオン）でも入力モードを切り替えられるようにします
+                        </p>
+                    </div>
+                    <Switch 
+                        checked={keyBindings.enable_muhenkan_henkan} 
+                        onCheckedChange={handleMuhenkanHenkanChange} 
+                    />
+                </div>
+            </section>
             <section className="space-y-2">
                 <h1 className="text-sm font-bold text-foreground">バージョンと更新プログラム</h1>
                 <div className="flex items-center space-x-4 rounded-md border p-4">
